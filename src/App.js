@@ -5,6 +5,8 @@ import Sketch from "react-p5";
 
 export default function App() {
   let colorPicker;
+  let sel;
+  let size = 5;
   const height = 1000;
   const width = 1000;
   var img;
@@ -14,6 +16,7 @@ export default function App() {
   var zMin = 0.05;
   var zMax = 9.00;
   var sens = 0.01;
+  var pg;
 
   const preload = (p5) => {
     img = p5.createImage(1000, 1000); 
@@ -21,13 +24,27 @@ export default function App() {
 
   const setup = (p5, canvasParentRef) => {
     //let img = p5.createImage(1000, 1000); 
-    
+    sel = p5.createSelect();
+    sel.position(1010, 10);
+    sel.option('1px');
+    sel.option('5px');
+    sel.option('10px');
+    sel.selected('5px');
+    sel.changed(mySelectEvent);
+
     img.loadPixels();
     p5.createCanvas(1000, 1000).parent(canvasParentRef);
+    pg = p5.createGraphics(1000, 1000);
     p5.background(0);
 
     colorPicker = p5.createColorPicker("#ed225d");
-    colorPicker.position(0, 100 + 5);
+    colorPicker.position(1010, 50);
+
+    function mySelectEvent() {
+      let size_str = sel.value();
+      size_str = size_str.slice(0, -2)
+      size = parseInt(size_str)
+    }
 
     function writeColor(image, x, y, red, green, blue, alpha) {
       let index = (x + y * width) * 4;
@@ -49,10 +66,10 @@ export default function App() {
       }
     }
 
-    p5.scale(zoom)
-    p5.noSmooth()
+    // p5.scale(zoom)
+    // p5.noSmooth()
     img.updatePixels();
-    p5.image(img, 0, 0);
+    // p5.image(img, 0, 0);
 
   };
 
@@ -68,6 +85,8 @@ export default function App() {
     p5.scale(zoom);
     p5.noSmooth()
     p5.image(img, 0, 0);
+
+    p5.image(pg, 0, 0);
     // for (let i = 0; i < 200; i++) {
     //   for (let j = 0; j < 200; j++) {
     //     p5.background.set(i, j, p5.color(0, 90, 102));
@@ -76,17 +95,26 @@ export default function App() {
   };
   
   const mouseClicked = (p5, event) => {
-    // console.log(event);
-    p5.noStroke();
+    console.log(event);
     let color = colorPicker.color();
-    p5.fill(color);
-    p5.rect(p5.mouseX, p5.mouseY, 5, 5);
+
+    pg.noStroke();
+    pg.noSmooth();
+    pg.fill(color);
+    pg.rect(p5.round(p5.mouseX/zoom), p5.round(p5.mouseY/zoom), size, size);
+
+    return false;
   };
 
   const mouseDragged =(p5, event) => {
     //console.log(event);
-    tox += p5.mouseX-p5.pmouseX;
-    toy += p5.mouseY-p5.pmouseY;
+    // tox += p5.mouseX-p5.pmouseX;
+    // toy += p5.mouseY-p5.pmouseY;
+    let color = colorPicker.color();
+    pg.noStroke();
+    pg.noSmooth();
+    pg.fill(color);
+    pg.rect(p5.round(p5.mouseX/zoom), p5.round(p5.mouseY/zoom), size, size);
   }
 
 
@@ -98,5 +126,5 @@ export default function App() {
 
   }
 
-  return <Sketch mouseClicked={mouseClicked} preload = {preload} mouseWheel={mouseWheel} setup={setup} draw={draw} />;
+  return <Sketch mouseClicked={mouseClicked} mouseWheel = {mouseWheel} mouseDragged = {mouseDragged} preload = {preload} setup={setup} draw={draw} />;
 }
