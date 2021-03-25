@@ -14,7 +14,7 @@ export default function App() {
   var x, y, tox, toy;
   var zoom = 1.00;
   var zMin = 0.05;
-  var zMax = 9.00;
+  var zMax = 13.00;
   var sens = 0.01;
   var pg;
 
