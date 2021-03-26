@@ -82,6 +82,7 @@ export default function App() {
 
     // p5.image(img, x-w/2, y-h/2, w, h);
     // p5.translate(p5.width/2,p5.height/2);
+    
     p5.scale(zoom);
     p5.noSmooth()
     p5.image(img, 0, 0);
@@ -106,7 +107,7 @@ export default function App() {
     return false;
   };
 
-  const mouseDragged =(p5, event) => {
+  const touchMoved =(p5, event) => {
     //console.log(event);
     // tox += p5.mouseX-p5.pmouseX;
     // toy += p5.mouseY-p5.pmouseY;
@@ -115,16 +116,19 @@ export default function App() {
     pg.noSmooth();
     pg.fill(color);
     pg.rect(p5.round(p5.mouseX/zoom), p5.round(p5.mouseY/zoom), size, size);
+    return false;
   }
 
 
   const mouseWheel = (p5, event) => {
-    console.log(event);
+    // console.log(event);
+    
     zoom -= sens * event.delta;
     zoom = p5.constrain(zoom, zMin, zMax);
+    console.log(zoom)
     return false;
 
   }
 
-  return <Sketch mouseClicked={mouseClicked} mouseWheel = {mouseWheel} mouseDragged = {mouseDragged} preload = {preload} setup={setup} draw={draw} />;
+  return <Sketch mouseClicked={mouseClicked} mouseWheel = {mouseWheel} touchMoved = {touchMoved} preload = {preload} setup={setup} draw={draw} />;
 }
