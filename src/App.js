@@ -3,6 +3,10 @@ import { useEffect, useState } from "react";
 import p5 from "react-p5";
 import Sketch from "react-p5";
 import axios from 'axios';
+import './index.css'
+//import { PanZoom } from 'react-easy-panzoom'
+
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 const hexRgb = require('hex-rgb');
 
 var palette = [
@@ -55,6 +59,7 @@ export default function App() {
   var w, h, tow, toh;
   var x, y, tox, toy;
   var zoom = 1.00;
+  // var zoom = 0.01;
   var zMin = 0.05;
   var zMax = 13.00;
   var sens = 0.01;
@@ -81,6 +86,11 @@ export default function App() {
 
     img.loadPixels();
     p5.createCanvas(1000, 1000).parent(canvasParentRef);
+    // w = tow = img.width;
+    // h = toh = img.height;
+    // x = tox = w / 2;
+    // y = toy = h / 2;
+
     pg = p5.createGraphics(1000, 1000);
     p5.background(0);
 
@@ -93,13 +103,17 @@ export default function App() {
       size = parseInt(size_str)
     }
 
-    function writeColor(image, index, red, green, blue, alpha) {
-      // let index = (x + y * width) * 4;
+    function writeColor(image, x, y, red, green, blue, alpha) {
+      let index = (x + y * width) * 4;
+      // index = index*4
       image.pixels[index] = red;
       image.pixels[index + 1] = green;
       image.pixels[index + 2] = blue;
       image.pixels[index + 3] = 255;
     }
+
+    // console.log(img.pixels);
+
     async function updatePixelsDB() {
 
       var res = await axios.get('http://127.0.0.1:80/api/getboard');
@@ -108,41 +122,37 @@ export default function App() {
       var array = res.data.toString().split("\\x");
       array.splice(0, 1);
 
-      console.log(array[0]);
-      // console.log(res.data)
+      
       let decimal = parseInt(array[0], 16);
 
-      
-      // console.log(pixels_db.length)
+      /*
       for (let i = 0; i < 1000000; i++) {
         let index = i;
         let colorindex = parseInt(array[i], 16);
         let color = hexRgb(palette[colorindex])
         writeColor(img, index, color.red, color.green, color.blue, 255);
       }
-      // for (let i = 0; i < pixels_db.length; i++) {
-      //   let index = pixels_db[i].coordinate;
-      //   let color = hexRgb(pixels_db[i].color)
-      //   writeColor(img, index, color.red, color.green, color.blue, 255);
-        // console.log(color);
-        //console.log(pixels[i].color);
-        // tmpArray[index].color = pixels[i].color;
-        
-      // }
+      */
+
       img.updatePixels();
     }
-    // let x, y;
+
+    let x, y;
     // fill with random colors
-    // for (y = 0; y < img.height; y++) {
-    //   for (x = 0; x < img.width; x++) {
-    //     let red = p5.random(255);
-    //     let green = p5.random(255);
-    //     let blue = p5.random(255);
-    //     let alpha = 255;
-    //     writeColor(img, x, y, red, green, blue, alpha);
-    //   }
-    // }
-    updatePixelsDB()
+    for (y = 0; y < img.height; y++) {
+      for (x = 0; x < img.width; x++) {
+        let red = p5.random(255);
+        let green = p5.random(255);
+        let blue = p5.random(255);
+        let alpha = 255;
+        writeColor(img, x, y, red, green, blue, alpha);
+      }
+    }
+
+    img.updatePixels();
+    // updatePixelsDB()
+
+    
     // p5.scale(zoom)
     // p5.noSmooth()
     
@@ -157,13 +167,17 @@ export default function App() {
     // w = p5.lerp(w, tow, .1); 
     // h = p5.lerp(h, toh, .1);
 
+    // p5.noSmooth()
     // p5.image(img, x-w/2, y-h/2, w, h);
     // p5.translate(p5.width/2,p5.height/2);
+    //p5.translate(p5.mouseX, p5.mouseY);
     
-    p5.scale(zoom);
+    // p5.scale(zoom);
+    //p5.translate(p5.mouseX, p5.mouseY);
     p5.noSmooth()
     p5.image(img, 0, 0);
-
+    // p5.fill(255);
+    // p5.rect(25, 25, 50, 50);
     p5.image(pg, 0, 0);
     // for (let i = 0; i < 200; i++) {
     //   for (let j = 0; j < 200; j++) {
@@ -179,7 +193,12 @@ export default function App() {
     pg.noStroke();
     pg.noSmooth();
     pg.fill(color);
-    pg.rect(p5.round(p5.mouseX/zoom), p5.round(p5.mouseY/zoom), size, size);
+    // pg.rect(p5.round(p5.mouseX/zoom), p5.round(p5.mouseY/zoom), size, size);
+    // pg.rect(p5.mouseX, p5.mouseY, size, size);
+    let black = p5.color(0);
+    img.loadPixels();
+    p5.set(p5.mouseX, p5.mouseY, black);
+    img.updatePixels();
 
     return false;
   };
@@ -199,13 +218,43 @@ export default function App() {
 
   const mouseWheel = (p5, event) => {
     // console.log(event);
+    // var e = -event.delta;
+
+    // if (e>0) { //zoom in
+    //   for (var i=0; i<e; i++) {
+    //     if (tow>30*width) return; //max zoom
+    //     tox -= zoom * (p5.mouseX - tox);
+    //     toy -= zoom * (p5.mouseY - toy);
+    //     tow *= zoom+1;
+    //     toh *= zoom+1;
+    //   }
+    // }
     
+    // if (e<0) { //zoom out
+    //   for (var i=0; i<-e; i++) {
+    //     if (tow<width) return; //min zoom
+    //     tox += zoom/(zoom+1) * (p5.mouseX - tox); 
+    //     toy += zoom/(zoom+1) * (p5.mouseY - toy);
+    //     toh /= zoom+1;
+    //     tow /= zoom+1;
+    //   }
+    // }
     zoom -= sens * event.delta;
     zoom = p5.constrain(zoom, zMin, zMax);
+    
     console.log(zoom)
     return false;
 
   }
 
-  return <Sketch mouseClicked={mouseClicked} mouseWheel = {mouseWheel} touchMoved = {touchMoved} preload = {preload} setup={setup} draw={draw} />;
-}
+
+  return(
+    <TransformWrapper>
+      <TransformComponent>
+        <Sketch mouseClicked={mouseClicked} mouseWheel = {mouseWheel} touchMoved = {touchMoved} preload = {preload} setup={setup} draw={draw} />
+      </TransformComponent>
+    </TransformWrapper>
+  )
+} 
+
+// className="container">
